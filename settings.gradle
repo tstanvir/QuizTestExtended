@@ -1,0 +1,2 @@
+rootProject.name = "QuizTestSystemUpdate"
+include ':app'
