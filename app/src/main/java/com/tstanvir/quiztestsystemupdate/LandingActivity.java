@@ -32,7 +32,6 @@ public class LandingActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.submit_button:
             {
                 String nameString=name.getText().toString().trim();
-                //TODO: Implement the control part
 
                 if(nameString.length()>0){
                     Intent intent=new Intent(LandingActivity.this,MainActivity.class);

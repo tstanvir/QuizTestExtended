@@ -5,4 +5,8 @@
     <string name="false_text">False</string>
     <string name="reset_text">reset</string>
     <string name="check_string">Check</string>
+    <string name="correct_answer">Correct</string>
+    <string name="question_boundary">No more questions</string>
+    <string name="wrong_answer">Wrong</string>
+    <string name="feed_back">You\'ve answered this question</string>
 </resources>

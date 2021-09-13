@@ -21,9 +21,9 @@ import java.util.List;
 public class QuestionBank {
     ArrayList<Question> questionArrayList = new ArrayList<>();
     //api from which we are parsing data
-    private String url = "https://raw.githubusercontent.com/curiousily/simple-quiz/master/script/statements-data.json";
+    private String url = "https://raw.githubusercontent.com/curiousily/simple-quiz/master/script/statements.json";
 
-    public List<Question> getQuestions(AnswerListAsyncResponse answerListAsyncResponse) {
+    public List<Question> getQuestions(final AnswerListAsyncResponse callBack) {
         //Receiving a JsonArray from the above api through http "get" method
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET, url, (JSONArray) null,
@@ -33,7 +33,7 @@ public class QuestionBank {
                         for(int i=0;i<response.length();i++){
                             Question question=new Question();
                             try {
-                                //Log.d("Json",response.getJSONArray(i).get(0).toString());
+                                //Log.d("Json1",""+response.getJSONArray(i).get(0).toString());
                                 question.setQuestion(response.getJSONArray(i).get(0).toString());
                                 question.setAnsToTheQues(response.getJSONArray(i).getBoolean(1));
                                 questionArrayList.add(question);
@@ -41,6 +41,7 @@ public class QuestionBank {
                                 e.printStackTrace();
                             }
                         }
+                        if(callBack!=null) callBack.processFinished(questionArrayList);
                     }
                 },
                 new Response.ErrorListener() {
@@ -52,7 +53,7 @@ public class QuestionBank {
 
         );
         AppController.getInstance().addToRequestQueue(jsonArrayRequest); //adding to the singleton request queue.
-        answerListAsyncResponse.processFinished(questionArrayList);
+        //Log.d("json2: "," "+questionArrayList.size());
         return questionArrayList;
     }
 
