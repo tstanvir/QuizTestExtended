@@ -3,10 +3,17 @@ package com.tstanvir.quiztestsystemupdate;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,6 +24,7 @@ import com.tstanvir.quiztestsystemupdate.model.Question;
 import com.tstanvir.quiztestsystemupdate.utils.AnswerListAsyncResponse;
 
 import java.lang.reflect.Array;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button falseButton;
     private Button resetButton;
     private Button checkButton;
-    private CardView questionCard;
     private TextView showQuestion;
     private TextView ansCounterShow;
     private int answerCounter=0;
@@ -48,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         falseButton= findViewById(R.id.false_button);
         resetButton=findViewById(R.id.reset_button);
         checkButton=findViewById(R.id.check_button);
-        questionCard= findViewById(R.id.cardView);
         showQuestion=findViewById(R.id.show_question);
         ansCounterShow=findViewById(R.id.ans_counter);
 
@@ -59,11 +65,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         resetButton.setOnClickListener(this);
         checkButton.setOnClickListener(this);
         nameString=getIntent().getExtras().getString("nameString");
-        showQuestion.setMovementMethod(new ScrollingMovementMethod()); //showQuestion is now scrollable.
         questionList= new QuestionBank().getQuestions(
                 new AnswerListAsyncResponse(){
                     @Override
                     public void processFinished(ArrayList<Question> questionArrayList) {
+                        //Log.d("test",""+questionArrayList.get(answerCounter).getQuestion());
                         resetALL();
                     }
                 }
@@ -104,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.next_button:{
-
                 if(answerCounter<questionList.size()-1){
                     answerCounter++;
                     updateQuestion();
@@ -119,9 +124,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.check_button:{
+                DecimalFormat df= new DecimalFormat();
+                df.setMaximumFractionDigits(2);
                 double tot=questionList.size();
                 double ans=(100.0*userPerformance)/answered;
-                Toast.makeText(this,nameString+"'s score is "+ans+"%",Toast.LENGTH_SHORT).show();
+                if(!Double.isNaN(ans)) Toast.makeText(this,nameString+"'s score is "+df.format(ans)+"%",Toast.LENGTH_SHORT).show();
+                else{
+                    Toast.makeText(this,nameString+", you didn't answer one.",Toast.LENGTH_SHORT).show();
+                }
                 break;
             }
         }
@@ -131,9 +141,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         answered++;
         if(usersAnswer==questionList.get(answerCounter).isAnsToTheQues()){
             userPerformance++;
+            fadeAnim();
+            updateQuestion();
             Toast.makeText(this, ""+getString(R.string.correct_answer),Toast.LENGTH_SHORT).show();
         }
         else{
+            shakeAnim();
+            updateQuestion();
             Toast.makeText(this,""+getString(R.string.wrong_answer),Toast.LENGTH_SHORT).show();
         }
     }
@@ -141,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void resetALL() {
         ansState= new boolean[questionList.size()];
         Arrays.fill(ansState,false);
+        showQuestion.setMovementMethod(new ScrollingMovementMethod()); //showQuestion is now scrollable.
         answerCounter=0;
         userPerformance=0.0;
         answered=0.0;
@@ -148,7 +163,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateQuestion() {
+        showQuestion.scrollTo(0,0);
         ansCounterShow.setText(answerCounter+" / "+questionList.size());
         showQuestion.setText( questionList.get(answerCounter).getQuestion());
     }
+    private void shakeAnim(){
+        Animation shake= AnimationUtils.loadAnimation(this,R.anim.shake_anim);
+        final CardView cardView=findViewById(R.id.cardView);
+        cardView.setAnimation(shake);
+        shakeItBaby();
+        shake.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                cardView.setBackgroundColor(Color.RED);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                cardView.setBackgroundColor(Color.WHITE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+    }
+    private void fadeAnim(){
+        final CardView cardView=findViewById(R.id.cardView);
+        AlphaAnimation alphaAnimation= new AlphaAnimation(1.0f,0.0f);
+        alphaAnimation.setDuration(250);
+        alphaAnimation.setRepeatCount(1);
+        alphaAnimation.setRepeatMode(Animation.REVERSE);
+        cardView.setAnimation(alphaAnimation);
+        alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                cardView.setBackgroundColor(Color.GREEN);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                cardView.setBackgroundColor(Color.WHITE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+    }
+    private void shakeItBaby() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(250, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(250);
+        }
+    }
+
+
 }
