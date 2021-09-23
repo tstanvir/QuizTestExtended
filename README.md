@@ -10,6 +10,7 @@
    * Introduced with data parsing from an api.
    * Implemented scrollable textview.
    * Introduced with Animation Class.
+   * Introduced with SharedPreferences Class to store small scale information.
 2. Tool:
 	* Android Studio
 3. Tech:
