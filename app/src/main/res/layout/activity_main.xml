@@ -11,7 +11,9 @@
         android:id="@+id/cardView"
         android:layout_width="335dp"
         android:layout_height="152dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="112dp"
+        android:layout_marginEnd="10dp"
         app:cardCornerRadius="5dp"
         app:cardElevation="6dp"
         app:contentPadding="7dp"
@@ -24,8 +26,8 @@
             android:id="@+id/show_question"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
             android:layout_gravity="center"
+            android:fontFamily="sans-serif"
             android:text="TextView"
             android:textAlignment="center"
             android:textSize="20sp" />
@@ -49,11 +51,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="92dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="20dp"
         android:text="TextView"
+        android:textAlignment="center"
         app:layout_constraintBottom_toTopOf="@+id/cardView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageView
         android:id="@+id/prev_button"
@@ -137,4 +141,31 @@
         app:layout_constraintStart_toEndOf="@+id/reset_button"
         app:layout_constraintTop_toBottomOf="@+id/false_button"
         app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/max_score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="MAX"
+        android:textAllCaps="true"
+        android:textColor="#880E4F"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/max_score"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="0.837" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

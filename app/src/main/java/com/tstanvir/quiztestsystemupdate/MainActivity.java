@@ -1,8 +1,10 @@
 package com.tstanvir.quiztestsystemupdate;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +29,7 @@ import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -38,12 +41,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button checkButton;
     private TextView showQuestion;
     private TextView ansCounterShow;
+    private TextView maxScore;
     private int answerCounter=0;
-    private boolean[] ansState;
+    private StringBuilder ansState=new StringBuilder();
     private double userPerformance=0.0;
     private String nameString;
     List<Question>questionList;
     private double answered=0.0;
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
+    String messageId="message";
+    private int maxCount=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         checkButton=findViewById(R.id.check_button);
         showQuestion=findViewById(R.id.show_question);
         ansCounterShow=findViewById(R.id.ans_counter);
+        maxScore=findViewById(R.id.max_score);
 
         prevButton.setOnClickListener(this);
         nextButton.setOnClickListener(this);
@@ -65,15 +74,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         resetButton.setOnClickListener(this);
         checkButton.setOnClickListener(this);
         nameString=getIntent().getExtras().getString("nameString");
+        showQuestion.setMovementMethod(new ScrollingMovementMethod()); //showQuestion is now scrollable.
+        sharedPreferences=getSharedPreferences(messageId,MODE_PRIVATE);
+        editor= sharedPreferences.edit();
         questionList= new QuestionBank().getQuestions(
                 new AnswerListAsyncResponse(){
                     @Override
                     public void processFinished(ArrayList<Question> questionArrayList) {
                         //Log.d("test",""+questionArrayList.get(answerCounter).getQuestion());
-                        resetALL();
+                        //start from where user leave.
+                        init();
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                            resetALL();
+//                        }
                     }
                 }
         );
+
     }
 
     @Override
@@ -90,8 +107,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.true_button:{
-                if(ansState[answerCounter]==false){
-                    ansState[answerCounter]=true;
+                if(ansState.charAt(answerCounter)=='0'){
+                    ansState.replace(answerCounter,answerCounter+1,"1");
                     checkAnswer(true);
                 }
                 else{
@@ -100,8 +117,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.false_button:{
-                if(ansState[answerCounter]==false){
-                    ansState[answerCounter]=true;
+                if(ansState.charAt(answerCounter)=='0'){
+                    ansState.replace(answerCounter,answerCounter+1,"1");
                     checkAnswer(false);
                 }
                 else{
@@ -120,7 +137,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.reset_button:{
-                resetALL();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    resetALL();
+                }
                 break;
             }
             case R.id.check_button:{
@@ -153,14 +172,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void resetALL() {
-        ansState= new boolean[questionList.size()];
-        Arrays.fill(ansState,false);
-        showQuestion.setMovementMethod(new ScrollingMovementMethod()); //showQuestion is now scrollable.
+        ansState.setLength(0);
+        for(int i=0;i<questionList.size();i++){
+            ansState.append('0');
+        }
         answerCounter=0;
         userPerformance=0.0;
         answered=0.0;
+        maxCount=0;
+        maxScore.setText(maxCount+"");
         updateQuestion();
     }
+    private void init(){
+        SharedPreferences getSharedData=getSharedPreferences(messageId,MODE_PRIVATE);
+        String name=getSharedData.getString(nameString,"None registered");
+        Log.d("name",name);
+        if(name=="None registered"){
+            resetALL();
+        }
+        else{
+            ansState.setLength(0);
+            ansState.append(getSharedData.getString(nameString+"ansState","ansState_is_not_found"));
+            answerCounter=getSharedData.getInt(nameString+"answerCounter",0);
+            userPerformance=getSharedData.getInt(nameString+"userPerformance",0);
+            answered=getSharedData.getInt(nameString+"answered",0);
+            maxCount=getSharedData.getInt(nameString+"maxCount",0);
+            maxScore.setText(maxCount+"");
+            updateQuestion();
+        }
+
+    }
+
 
     private void updateQuestion() {
         showQuestion.scrollTo(0,0);
@@ -222,5 +264,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
+    @Override
+    protected void onDestroy() {
+        //Log.d("OnDestroy: ",nameString);
+        editor.putString(nameString,nameString);
+        editor.putInt(nameString+"userPerformance",(int)userPerformance);
+        editor.putInt(nameString+"answered",(int)answered);
+        editor.putString(nameString+"ansState", String.valueOf(ansState));
+        editor.putInt(nameString+"answerCounter",answerCounter);
+        editor.putInt(nameString+"maxCount",Math.max(maxCount,(int)userPerformance));
+        editor.apply();
+        super.onDestroy();
+    }
 }
