@@ -47,9 +47,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private double userPerformance=0.0;
     private String nameString;
     List<Question>questionList;
-    private double answered=0.0;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    SharedPreferences getSharedData;
     String messageId="message";
     private int maxCount=0;
 
@@ -137,17 +137,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.reset_button:{
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    resetALL();
-                }
+                resetALL();
                 break;
             }
             case R.id.check_button:{
                 DecimalFormat df= new DecimalFormat();
-                df.setMaximumFractionDigits(2);
-                double tot=questionList.size();
-                double ans=(100.0*userPerformance)/answered;
-                if(!Double.isNaN(ans)) Toast.makeText(this,nameString+"'s score is "+df.format(ans)+"%",Toast.LENGTH_SHORT).show();
+                double ans=(10.0*userPerformance);
+                if(!Double.isNaN(ans)) Toast.makeText(this,nameString+"'s score is "+df.format(ans)+".",Toast.LENGTH_SHORT).show();
                 else{
                     Toast.makeText(this,nameString+", you didn't answer one.",Toast.LENGTH_SHORT).show();
                 }
@@ -157,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkAnswer(boolean usersAnswer) {
-        answered++;
         if(usersAnswer==questionList.get(answerCounter).isAnsToTheQues()){
             userPerformance++;
             fadeAnim();
@@ -165,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, ""+getString(R.string.correct_answer),Toast.LENGTH_SHORT).show();
         }
         else{
+            if(userPerformance>0) userPerformance--;
             shakeAnim();
             updateQuestion();
             Toast.makeText(this,""+getString(R.string.wrong_answer),Toast.LENGTH_SHORT).show();
@@ -178,15 +174,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         answerCounter=0;
         userPerformance=0.0;
-        answered=0.0;
         maxCount=0;
         maxScore.setText(maxCount+"");
         updateQuestion();
     }
     private void init(){
-        SharedPreferences getSharedData=getSharedPreferences(messageId,MODE_PRIVATE);
+        getSharedData=getSharedPreferences(messageId,MODE_PRIVATE);
         String name=getSharedData.getString(nameString,"None registered");
-        Log.d("name",name);
+        //Log.d("name",name);
         if(name=="None registered"){
             resetALL();
         }
@@ -195,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ansState.append(getSharedData.getString(nameString+"ansState","ansState_is_not_found"));
             answerCounter=getSharedData.getInt(nameString+"answerCounter",0);
             userPerformance=getSharedData.getInt(nameString+"userPerformance",0);
-            answered=getSharedData.getInt(nameString+"answered",0);
             maxCount=getSharedData.getInt(nameString+"maxCount",0);
             maxScore.setText(maxCount+"");
             updateQuestion();
@@ -207,6 +201,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void updateQuestion() {
         showQuestion.scrollTo(0,0);
         ansCounterShow.setText(answerCounter+" / "+questionList.size());
+        maxCount=Math.max(maxCount,(int)userPerformance*10);
+        maxScore.setText(maxCount+"");
         showQuestion.setText( questionList.get(answerCounter).getQuestion());
     }
     private void shakeAnim(){
@@ -269,10 +265,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Log.d("OnDestroy: ",nameString);
         editor.putString(nameString,nameString);
         editor.putInt(nameString+"userPerformance",(int)userPerformance);
-        editor.putInt(nameString+"answered",(int)answered);
         editor.putString(nameString+"ansState", String.valueOf(ansState));
         editor.putInt(nameString+"answerCounter",answerCounter);
-        editor.putInt(nameString+"maxCount",Math.max(maxCount,(int)userPerformance));
+        editor.putInt(nameString+"maxCount",Math.max(maxCount,(int)userPerformance*10));
         editor.apply();
         super.onDestroy();
     }
